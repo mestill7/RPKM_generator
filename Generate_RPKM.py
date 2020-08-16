@@ -11,12 +11,10 @@ import os
 # --out_prefix /home/molly/Desktop/Cibersort/GSE125197_rpkm --input_sep tab --ignore "0;2" --org="mouse"
 
 # Generate_RPKM.py --counts /home/molly/Desktop/Cibersort/GSE135114_REH.genelevel.count.csv 
-# --out_prefix /home/molly/Desktop/Cibersort/GSE135114_REH_rpkm --input_sep csv --ignore None --org="human"
-
-# wget -O result.txt 'http://www.ensembl.org/biomart/martservice?query=<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE Query><Query  virtualSchemaName = "default" formatter = "TSV" header = "0" uniqueRows = "0" count = "" datasetConfigVersion = "0.6" ><Dataset name = "hsapiens_gene_ensembl" interface = "default" ><Filter name = "ensembl_gene_id" value = "ENSG00000139618"/><Attribute name = "ensembl_gene_id" /><Attribute name = "ensembl_transcript_id" /><Attribute name = "hgnc_symbol" /><Attribute name = "uniprotswissprot" /></Dataset></Query>'
+# --out_prefix /home/molly/Desktop/Cibersort/GSE135114_REH_rpkm --input_sep csv --org="human"
 
 parser = argparse.ArgumentParser(description='Transform raw read counts into RPKM.',
-	epilog="Report issues or feature requests to Github (https://github.com/mestill7/RPKM_generator)")
+    epilog="Report issues or feature requests to Github (https://github.com/mestill7/RPKM_generator)")
 parser.add_argument('--biomart=',type=str, help='(Optional) Murine Biomart reference file')
 parser.add_argument('--counts=',type=str, help='Raw counts file')
 parser.add_argument('--out_prefix=',type=str, help='Prefix for RPKM file name (eg. GSE125197_rpkm')
@@ -28,10 +26,10 @@ args = parser.parse_args()
 
 # print 'ARGV      :', sys.argv[1:]
 try:
-    opts, args = getopt.getopt(sys.argv[1:],"",["biomart=","counts=","out_prefix=","input_sep=","ignore=","lengthtype=","org="])  #b:c:o:in:ig:
+    opts, args = getopt.getopt(sys.argv[1:],"",["biomart=","counts=","out_prefix=","input_sep=","ignore=","lengthtype=","org="])
 except getopt.GetoptError:
-	print 'test.py -i <inputfile> -o <outputfile>'
-	sys.exit(2)
+    print("python Generate_RPKM.py --counts GSE125197_lunde_et_al_2019_mouse_counts.txt --out_prefix GSE125197_rpkm --input_sep tab --ignore \"0;2\"")
+    sys.exit(2)
 
 ## Helper functions
 def intersection(lst1, lst2): 
@@ -61,7 +59,7 @@ except NameError:
     organism="mouse"
 else:
     if organism not in ("human","mouse"):
-        print("You have picked the unknown organism \""+organism+"\".\nOnly mouse and human data are currently supported.")
+        print(("You have picked the unknown organism \""+organism+"\".\nOnly mouse and human data are currently supported."))
         exit()
 
 try:
@@ -71,35 +69,35 @@ except NameError:
 else:
     length_type = int(float(length_type))
     if length_type in (1,2,3):
-        print("Chosen length type: "+dict(zip((1,2,3),("mean","median","max")))[length_type])
+        print(("Chosen length type: "+dict(list(zip((1,2,3),("mean","median","max"))))[length_type]))
     else:
-        print("You chose length type "+str(length_type)+". Please select 1 (mean), 2 (median) or 3 (maximum). Now exiting...")
+        print(("You chose length type "+str(length_type)+". Please select 1 (mean), 2 (median) or 3 (maximum). Now exiting..."))
         exit()
 
-## Download biomart database if not specified
 try:
     biomart
 except NameError:
-    print("No biomart database specified.\nNow attempting to downloading the "+organism+" database from biomart...")
+    print(("No biomart database specified.\nNow attempting to downloading the "+organism+" database from biomart..."))
     if organism=="mouse":
-        url = 'http://www.ensembl.org/biomart/martservice?query=<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE Query><Query  virtualSchemaName = "default" formatter = "TSV" header = "0" uniqueRows = "0" count = "" datasetConfigVersion = "0.6" ><Dataset name = "mmusculus_gene_ensembl" interface = "default" ><Attribute name = "ensembl_gene_id" /><Attribute name="ensembl_gene_id_version"/><Attribute name = "ensembl_transcript_id" /><Attribute name="ensembl_transcript_id_version"/><Attribute name = "external_gene_name" /><Attribute name = "refseq_mrna" /><Attribute name = "transcript_length" /></Dataset></Query>'
+        url = 'http://www.ensembl.org/biomart/martservice?query=<?xml%20version="1.0"%20encoding="UTF-8"?><!DOCTYPE%20Query><Query%20virtualSchemaName="default"%20formatter="TSV"%20header="1"%20uniqueRows="0"%20count=""%20datasetConfigVersion="0.6"><Dataset%20name="mmusculus_gene_ensembl"%20interface="default"><Attribute%20name="ensembl_gene_id"/><Attribute%20name="ensembl_gene_id_version"/><Attribute%20name="ensembl_transcript_id"/><Attribute%20name="ensembl_transcript_id_version"/><Attribute%20name="external_gene_name"/><Attribute%20name="refseq_mrna"/><Attribute%20name="transcript_length"/></Dataset></Query>'
         if os.path.isfile("./biomart_download.txt"):
             os.remove("./biomart_download.txt")
             biomart_file = wget.download(url,"./biomart_download.txt")
         else:
             biomart_file = wget.download(url,"./biomart_download.txt")
+        print(biomart_file)
         biomart = pd.read_csv(open(biomart_file, "r"),header=0,sep='\t')
         biomart.columns = ['Gene_stable_ID','Gene_stable_ID_version','Txt_stable_ID','Txt_stable_ID_version','Gene_symbol','Refseq', 'Length']
-        print("\n\nYour database: "+str(biomart.shape[0])+" rows, "+str(biomart.shape[1])+" columns")
+        print(("\n\nYour database: "+str(biomart.shape[0])+" rows, "+str(biomart.shape[1])+" columns"))
         f=biomart.copy()
         f['Gene_symbol_v2'] = f['Gene_symbol'].str.upper()
         # f['Gene_symbol_v3'] = f['Gene_symbol_v2'].str.replace("-","")
         print("Here are the first rows of your database:")
-        print(f.head())
+        print((f.head()))
         print("Here are the column headers of your database:")
-        print(f.columns.values)
+        print((f.columns.values))
     elif organism=="human": 
-        url = 'http://www.ensembl.org/biomart/martservice?query=<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE Query><Query  virtualSchemaName = "default" formatter = "TSV" header = "0" uniqueRows = "0" count = "" datasetConfigVersion = "0.6" ><Dataset name = "hsapiens_gene_ensembl" interface = "default" ><Attribute name = "ensembl_gene_id" /><Attribute name="ensembl_gene_id_version"/><Attribute name = "ensembl_transcript_id" /><Attribute name="ensembl_transcript_id_version"/><Attribute name = "external_gene_name" /><Attribute name = "refseq_mrna" /><Attribute name = "transcript_length" /></Dataset></Query>'
+        url = 'http://www.ensembl.org/biomart/martservice?query=<?xml%20version="1.0"%20encoding="UTF-8"?><!DOCTYPE%20Query><Query%20virtualSchemaName="default"%20formatter="TSV"%20header="1"%20uniqueRows="0"%20count=""%20datasetConfigVersion="0.6"><Dataset%20name="hsapiens_gene_ensembl"%20interface="default"><Attribute%20name="ensembl_gene_id"/><Attribute%20name="ensembl_gene_id_version"/><Attribute%20name="ensembl_transcript_id"/><Attribute%20name="ensembl_transcript_id_version"/><Attribute%20name="external_gene_name"/><Attribute%20name="refseq_mrna"/><Attribute%20name="transcript_length"/></Dataset></Query>'
         if os.path.isfile("./biomart_download.txt"):
             os.remove("./biomart_download.txt")
             biomart_file = wget.download(url,"./biomart_download.txt")
@@ -107,18 +105,16 @@ except NameError:
             biomart_file = wget.download(url,"./biomart_download.txt")
         biomart = pd.read_csv(open(biomart_file, "r"),header=0,sep='\t')
         biomart.columns = ['Gene_stable_ID','Gene_stable_ID_version','Txt_stable_ID','Txt_stable_ID_version','Gene_symbol','Refseq', 'Length']
-        print("\n\nYour database: "+str(biomart.shape[0])+" rows, "+str(biomart.shape[1])+" columns")
+        print(("\n\nYour database: "+str(biomart.shape[0])+" rows, "+str(biomart.shape[1])+" columns"))
         f=biomart.copy()
         f['Gene_symbol_v2'] = f['Gene_symbol'].str.upper()
         # f['Gene_symbol_v3'] = f['Gene_symbol_v2'].str.replace("-","")
         print("Here are the first rows of your database:")
-        print(f.head())
-        print(f.tail())
+        print((f.head()))
         print("Here are the column headers of your database:")
-        print(f.columns.values)
+        print((f.columns.values))
 else:
     print("Using the user-provided biomart database...")
-    # print(biomart)
     # ## Read in the biomart resource
     f = pd.read_csv(open(biomart, "r"),header=0,sep='\t')
     #Format the database
@@ -133,11 +129,11 @@ else:
     # Create possible modifications of the gene symbol
     f['Gene_symbol_v2'] = f['Gene_symbol'].str.upper()
     # f['Gene_symbol_v3'] = f['Gene_symbol_v2'].str.replace("-","")
-    print("Your database:"+str(biomart.shape[0])+"rows and"+str(biomart.shape[1])+" columns")
+    print(("Your database:"+str(biomart.shape[0])+"rows and"+str(biomart.shape[1])+" columns"))
     print("Here are the first rows of your database:")
-    print(f.head())
+    print((f.head()))
     print("Here are the column headers of your database:")
-    print(f.columns.values)
+    print((f.columns.values))
 
 print("\n\nReading counts file...")
 if ct_sep == "csv":
@@ -145,7 +141,7 @@ if ct_sep == "csv":
     if ignore_cols is NameError:
         print("No columns being omitted.")
     else:
-        print("you are omitting columns "+str(ignore_cols))
+        print(("you are omitting columns "+str(ignore_cols)))
     to_r = counts.columns.values[ignore_cols] #establish which column names correspond to the column indexes to remove
     counts.drop(columns=to_r,axis=1,inplace=True)
     new_columns = counts.columns.values; new_columns[0] = 'ID'; counts.columns  = new_columns #replace the first column's name with "ID"
@@ -153,17 +149,17 @@ if ct_sep == "csv":
     #remove NAN and duplicated IDs
     counts.dropna(axis=0,inplace=True)
     counts.drop_duplicates(subset='ID', keep="first",inplace=True)
-    print("\n\nYour counts file: "+str(counts.shape[0])+" rows, "+str(counts.shape[1])+" columns")
+    print(("\n\nYour counts file: "+str(counts.shape[0])+" rows, "+str(counts.shape[1])+" columns"))
     print("Here are the first rows of your counts:")
-    print(counts.head())
+    print((counts.head()))
     print("Here are the column headers of your counts:")
-    print(counts.columns.values)
+    print((counts.columns.values))
 elif ct_sep == "tab":
     counts = pd.read_csv(open(counts_file, "r"),header=0,sep='\t')
     if ignore_cols is NameError:
         print("No columns being omitted.")
     else:
-        print("you are omitting columns "+str(ignore_cols))
+        print(("you are omitting columns "+str(ignore_cols)))
     to_r = counts.columns.values[ignore_cols] #establish which column names correspond to the column indexes to remove
     counts.drop(columns=to_r,axis=1,inplace=True)
     new_columns = counts.columns.values; new_columns[0] = 'ID'; counts.columns  = new_columns #replace the first column's name with "ID"
@@ -171,11 +167,11 @@ elif ct_sep == "tab":
     #remove NAN and duplicated IDs
     counts.dropna(axis=0,inplace=True)
     counts.drop_duplicates(subset='ID', keep="first",inplace=True)
-    print("Your counts file: "+str(counts.shape[0])+" rows, "+str(counts.shape[1])+" columns")
+    print(("Your counts file: "+str(counts.shape[0])+" rows, "+str(counts.shape[1])+" columns"))
     print("Here are the first rows of your counts:")
-    print(counts.head())
+    print((counts.head()))
     print("Here are the column headers of your counts:")
-    print(counts.columns.values)
+    print((counts.columns.values))
 
 #Begin matching
 print("Now identifying the type of gene identifier...")
@@ -183,57 +179,57 @@ if organism == "human":
     genes_match = counts['ID'].str.startswith("ENSG")
 else:
     genes_match = counts['ID'].str.startswith("ENSMUSG")
-if sum(genes_match) > 0.5*counts.shape[0] :
-	print("You are using Ensembl gene identifiers\nNow testing for gene versions...")
-	genes_match = counts['ID'].str.endswith("\\.[0-9]*")
-	if sum(genes_match) > 0.5*counts.shape[0] :
-		print("You are using Ensembl gene versions.")
-		current_overlap = intersection(counts['ID'].values,f['Gene_stable_ID_version'].values)
-		outmess = "You seem to be using Ensembl gene versions.\nOverlap with Biomart database: "+str(round((float(len(current_overlap))/float(counts.shape[0]))*100,2))+"%"
-		print(outmess)
-		gene_type = "Gene_stable_ID_version"
-	else:
-		current_overlap = intersection(counts['ID'].values,f['Gene_stable_ID'].values)
-		outmess = "You seem to be using Ensembl gene identifiers.\nOverlap with Biomart database: "+str(round((float(len(current_overlap))/float(counts.shape[0]))*100,2))+"%"
-		print(outmess)
-		gene_type = "Gene_stable_ID"
+if sum(genes_match) > (0.5*counts.shape[0]):
+    print("You are using Ensembl gene identifiers\nNow testing for gene versions...")
+    genes_match = counts['ID'].str.endswith("\\.[0-9]*")
+    if sum(genes_match) > (0.5*counts.shape[0]):
+        print("You are using Ensembl gene versions.")
+        current_overlap = intersection(counts['ID'].values,f['Gene_stable_ID_version'].values)
+        outmess = "You seem to be using Ensembl gene versions.\nOverlap with Biomart database: "+str(round((float(len(current_overlap))/float(counts.shape[0]))*100,2))+"%"
+        print(outmess)
+        gene_type = "Gene_stable_ID_version"
+    else:
+        current_overlap = intersection(counts['ID'].values,f['Gene_stable_ID'].values)
+        outmess = "You seem to be using Ensembl gene identifiers.\nOverlap with Biomart database: "+str(round((float(len(current_overlap))/float(counts.shape[0]))*100,2))+"%"
+        print(outmess)
+        gene_type = "Gene_stable_ID"
 
-elif sum(counts['ID'].str.startswith("NM_")) > 0.5*counts.shape[0] :
-	genes_match = counts['ID'].str.startswith("NM_")
-	current_overlap = intersection(counts['ID'].values,f['Refseq'].values)
-	outmess = "You seem to be using Refseq mRNA identifiers\nOverlap with Biomart database: "+str(round((float(len(current_overlap))/float(counts.shape[0]))*100,2))+"%"
-	print(outmess)
-	gene_type = "Refseq"
+elif sum(counts['ID'].str.startswith("NM_")) > (0.5*counts.shape[0]):
+    genes_match = counts['ID'].str.startswith("NM_")
+    current_overlap = intersection(counts['ID'].values,f['Refseq'].values)
+    outmess = "You seem to be using Refseq mRNA identifiers\nOverlap with Biomart database: "+str(round((float(len(current_overlap))/float(counts.shape[0]))*100,2))+"%"
+    print(outmess)
+    gene_type = "Refseq"
 
 else:
     if organism == "human":
         genes_match = counts['ID'].str.startswith("ENST")
     else:
         genes_match = counts['ID'].str.startswith("ENSMUST")
-	if sum(genes_match) > 0.5*counts.shape[0] :
-		print("You are using Ensembl transcript identifiers\nNow testing for transcript versions...")
-		genes_match = counts['ID'].str.endswith("\\.[0-9]*")
-		if sum(genes_match) > 0.5*counts.shape[0] :
-			print("You are using Ensembl transcript versions.")
-			current_overlap = intersection(counts['ID'].values,f['Txt_stable_ID_version'].values)
-			outmess = "You seem to be using Ensembl transcript versions.\nOverlap with Biomart database: "+str(round((float(len(current_overlap))/float(counts.shape[0]))*100,2))+"%"
-			print(outmess)
-			gene_type = "Txt_stable_ID_version"
-		else:
-			current_overlap = intersection(counts['ID'].values,f['Txt_stable_ID'].values)
-			outmess = "You seem to be using Ensembl transcript identifiers.\nOverlap with Biomart database: "+str(round((float(len(current_overlap))/float(counts.shape[0]))*100,2))+"%"
-			print(outmess)
-			gene_type = "Txt_stable_ID"
-	else:
-		print("You may be using Gene symbols, now testing for gene symbol overlap...")
-		current_overlap = intersection(counts['ID'].values,f['Gene_symbol_v2'].values)
-		if len(current_overlap) > 0.5*counts.shape[0] :
-			outmess = "You seem to be using gene symbols.\nOverlap with Biomart database: "+str(round((float(len(current_overlap))/float(counts.shape[0]))*100,2))+"%"
-			print(outmess)
-			gene_type="Gene_symbol_v2"
-		else:
-			print("Your gene identifiers do not appear to be Ensembl identifiers or gene symbols.\nDid you select the correct organism?\nExiting the program.")
-			exit()
+    if sum(genes_match) > (0.5*counts.shape[0]) :
+        print("You are using Ensembl transcript identifiers\nNow testing for transcript versions...")
+        genes_match = counts['ID'].str.endswith("\\.[0-9]*")
+        if sum(genes_match) > (0.5*counts.shape[0]):
+            print("You are using Ensembl transcript versions.")
+            current_overlap = intersection(counts['ID'].values,f['Txt_stable_ID_version'].values)
+            outmess = "You seem to be using Ensembl transcript versions.\nOverlap with Biomart database: "+str(round((float(len(current_overlap))/float(counts.shape[0]))*100,2))+"%"
+            print(outmess)
+            gene_type = "Txt_stable_ID_version"
+        else:
+            current_overlap = intersection(counts['ID'].values,f['Txt_stable_ID'].values)
+            outmess = "You seem to be using Ensembl transcript identifiers.\nOverlap with Biomart database: "+str(round((float(len(current_overlap))/float(counts.shape[0]))*100,2))+"%"
+            print(outmess)
+            gene_type = "Txt_stable_ID"
+    else:
+        print("You may be using Gene symbols, now testing for gene symbol overlap...")
+        current_overlap = intersection(counts['ID'].values,f['Gene_symbol_v2'].values)
+        if len(current_overlap) > 0.5*counts.shape[0]:
+            outmess = "You seem to be using gene symbols.\nOverlap with Biomart database: "+str(round((float(len(current_overlap))/float(counts.shape[0]))*100,2))+"%"
+            print(outmess)
+            gene_type="Gene_symbol_v2"
+        else:
+            print("Your gene identifiers do not appear to be Ensembl identifiers or gene symbols.\nDid you select the correct organism?\nExiting the program.")
+            exit()
 
 
 # Subset the counts to match the overlap with the gene type
@@ -242,8 +238,8 @@ counts.set_index(counts['ID'],inplace=True) #Set index of counts to be the ID
 counts.shape
 
 counts = counts.loc[current_overlap]
-print("Number of genes used for generating RPKM: "+str(counts.shape[0]))
-print("First 5 genes: "+current_overlap[0]+" "+current_overlap[1]+" "+current_overlap[2]+" "+current_overlap[3]+" "+current_overlap[4])
+print(("Number of genes used for generating RPKM: "+str(counts.shape[0])))
+print(("First 5 genes: "+current_overlap[0]+" "+current_overlap[1]+" "+current_overlap[2]+" "+current_overlap[3]+" "+current_overlap[4]))
 
 #Subset the database to match the overlapping genes
 f_sub = f[f[gene_type].isin(current_overlap)]
@@ -276,23 +272,21 @@ rpkm = counts_rev.divide(genelength,axis=0).divide(colsum,axis=1)
 
 #put the gene ids, symbols, and rpkm together
 if gene_type == 'Gene_symbol_v2':
-	rpkm_out = f_len.merge(rpkm,left_index=True,right_index=True)
-else:	
-	rpkm_out = f_key.merge(f_len,left_index=True,right_index=True).merge(rpkm,left_index=True,right_index=True)
+    rpkm_out = f_len.merge(rpkm,left_index=True,right_index=True)
+else:
+    rpkm_out = f_key.merge(f_len,left_index=True,right_index=True).merge(rpkm,left_index=True,right_index=True)
 
 rpkm_out.reset_index(inplace=True)
 new_columns = rpkm_out.columns.values; new_columns[0] = gene_type; rpkm_out.columns  = new_columns
 
 print("Now saving the RPKM files...")
-
 file_name = out_file+"_full.txt"
 rpkm_out.to_csv(file_name,sep="\t",index=False)
 
 #Drop certain columns to make a user-friendly simple RPKM
 if gene_type == 'Gene_symbol_v2':
-	rpkm_out_min = rpkm_out.drop('Length', axis=1).copy()
+    rpkm_out_min = rpkm_out.drop('Length', axis=1).copy()
 else:
-	rpkm_out_min = rpkm_out.drop([gene_type,'Length'], axis=1).copy()
+    rpkm_out_min = rpkm_out.drop([gene_type,'Length'], axis=1).copy()
 file_name = out_file+"_minimal.txt"
 rpkm_out_min.to_csv(file_name,sep="\t",index=False)
-
