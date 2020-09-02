@@ -7,29 +7,24 @@ import os
 ### Example uses
 
 # Generate_RPKM.py --biomart /home/molly/Desktop/Cibersort/mm10_biomart_database.txt 
-# --counts /home/molly/Desktop/Cibersort/GSE125197_lunde_et_al_2019_mouse_counts.txt
-# --out_prefix /home/molly/Desktop/Cibersort/GSE125197_rpkm --input_sep tab --ignore "0;2" --org="mouse"
+# -C /home/molly/Desktop/Cibersort/GSE125197_lunde_et_al_2019_mouse_counts.txt
+# --out_prefix /home/molly/Desktop/Cibersort/GSE125197_rpkm --ignore "0;2" --org "mouse"
 
-# Generate_RPKM.py --counts /home/molly/Desktop/Cibersort/GSE135114_REH.genelevel.count.csv 
-# --out_prefix /home/molly/Desktop/Cibersort/GSE135114_REH_rpkm --input_sep csv --org="human"
+# python Generate_RPKM.py3 -C /home/molly/Desktop/Cibersort/GSE125197_lunde_et_al_2019_mouse_counts.txt 
+# --out_prefix /home/molly/Desktop/Cibersort/GSE125197_rpkm --ignore "0;2" 
+
+# Generate_RPKM.py --C /home/molly/Desktop/Cibersort/GSE135114_REH.genelevel.count.csv 
+# --out_prefix /home/molly/Desktop/Cibersort/GSE135114_REH_rpkm --org="human"
 
 parser = argparse.ArgumentParser(description='Transform raw read counts into RPKM.',
     epilog="Report issues or feature requests to Github (https://github.com/mestill7/RPKM_generator)")
-parser.add_argument('--biomart=',type=str, help='(Optional) Murine Biomart reference file')
-parser.add_argument('--counts=',type=str, help='Raw counts file')
-parser.add_argument('--out_prefix=',type=str, help='Prefix for RPKM file name (eg. GSE125197_rpkm')
-parser.add_argument('--input_sep=',type=str, help='column seperator for input count file options are "tab" or "csv"')
-parser.add_argument('--ignore=',type=str, help='(Optional) Columns to ignore (zero-start), seperated by semicolon (eg. "1;3" will omit the 2nd and 4th column, "0" will omit the first column')
-parser.add_argument('--lengthtype=',type=int, help='(Optional) Input options: 1, 2 or 3. \n1=mean of lengths of isoforms, \n2=median of lengths of isoforms.\n3=max of lengths of isoforms.\n Default is 1.')
-parser.add_argument('--org=',type=str, help='(Optional) Input options: mouse or human. Default is mouse.')
+parser.add_argument('--biomart',type=str, help='(Optional) Murine Biomart reference file')
+parser.add_argument('-C',type=str, help='Raw counts file. Tab-delimited (.txt) or comma-seperated (.csv) formats are accepted.')
+parser.add_argument('--out_prefix',type=str, help='(Optional) Prefix for RPKM file name (eg. GSE125197_rpkm. Defaults to \"./RPKM\"')
+parser.add_argument('--ignore',type=str, help='(Optional) Columns to ignore (zero-start), seperated by semicolon (eg. "1;3" will omit the 2nd and 4th column, "0" will omit the first column')
+parser.add_argument('--lengthtype',type=int, help='(Optional) Input options: 1, 2 or 3. \n1=mean of lengths of isoforms, \n2=median of lengths of isoforms.\n3=max of lengths of isoforms.\n Default is 1.')
+parser.add_argument('--org',type=str, help='(Optional) Input options: mouse or human. Default is mouse.')
 args = parser.parse_args()
-
-# print 'ARGV      :', sys.argv[1:]
-try:
-    opts, args = getopt.getopt(sys.argv[1:],"",["biomart=","counts=","out_prefix=","input_sep=","ignore=","lengthtype=","org="])
-except getopt.GetoptError:
-    print("python Generate_RPKM.py --counts GSE125197_lunde_et_al_2019_mouse_counts.txt --out_prefix GSE125197_rpkm --input_sep tab --ignore \"0;2\"")
-    sys.exit(2)
 
 ## Helper functions
 def intersection(lst1, lst2): 
@@ -37,21 +32,22 @@ def intersection(lst1, lst2):
     return lst3 
 ## End helper functions
 
-for option_key, option_value in opts:
-    if option_key in ('--biomart'):
-        biomart = option_value
-    elif option_key in ('--counts'):
-        counts_file = option_value
-    elif option_key in ('--out_prefix'):
-        out_file = option_value
-    elif option_key in ('--input_sep'):
-        ct_sep = option_value
-    elif option_key in ('--ignore'):
-        ignore_cols = [int(x) for x in option_value.split(';')]
-    elif option_key in ('--lengthtype'):
-        length_type = option_value
-    elif option_key in ('--org'):
-        organism = option_value
+# Define variables from argument list
+if args.biomart is not None:
+    biomart = args.biomart
+if args.C is not None:
+    counts_file = args.C
+if args.out_prefix is not None:
+    out_file = args.out_prefix
+if args.ignore is not None:
+    ignore_cols = [int(x) for x in args.ignore.split(';')]
+if args.lengthtype is not None:
+    length_type = args.lengthtype
+if args.org is not None:
+    organism = args.org
+
+# print(args)
+# print(locals())
 
 try:
     organism
@@ -61,6 +57,11 @@ else:
     if organism not in ("human","mouse"):
         print(("You have picked the unknown organism \""+organism+"\".\nOnly mouse and human data are currently supported."))
         exit()
+
+try:
+    out_file
+except NameError:
+    out_file="./RPKM"
 
 try:
     length_type
@@ -136,7 +137,7 @@ else:
     print((f.columns.values))
 
 print("\n\nReading counts file...")
-if ct_sep == "csv":
+if counts_file[-3:] == "csv":
     counts = pd.read_csv(open(counts_file, "r"),header=0)
     if ignore_cols is NameError:
         print("No columns being omitted.")
@@ -154,7 +155,7 @@ if ct_sep == "csv":
     print((counts.head()))
     print("Here are the column headers of your counts:")
     print((counts.columns.values))
-elif ct_sep == "tab":
+elif counts_file[-3:] == "txt":
     counts = pd.read_csv(open(counts_file, "r"),header=0,sep='\t')
     if ignore_cols is NameError:
         print("No columns being omitted.")
@@ -290,3 +291,4 @@ else:
     rpkm_out_min = rpkm_out.drop([gene_type,'Length'], axis=1).copy()
 file_name = out_file+"_minimal.txt"
 rpkm_out_min.to_csv(file_name,sep="\t",index=False)
+
