@@ -6,19 +6,18 @@ python Generate_RPKM.py --help
 
 usage: 
 
-    Generate_RPKM.py [-h] [--biomart= BIOMART=] [--counts= COUNTS=]
-    [--out_prefix= OUT_PREFIX=] [--input_sep= INPUT_SEP=]
-    [--ignore= IGNORE=] [--lengthtype= LENGTHTYPE=]
-    [--org= ORG=]
+    usage: Generate_RPKM.py [-h] [--biomart BIOMART] [-C C] 
+            [--out_prefix OUT_PREFIX] [--ignore IGNORE] 
+            [--lengthtype LENGTHTYPE] [--org ORG]
 
 
 Example Usage:
 
-    python Generate_RPKM.py --counts /user/home/GSE125197_lunde_et_al_2019_mouse_counts.txt 
-    --out_prefix /user/home/GSE125197_rpkm --input_sep tab --ignore "0;2" 
+    python Generate_RPKM.py -C /user/home/GSE125197_lunde_et_al_2019_mouse_counts.txt 
+    --out_prefix /user/home/GSE125197_rpkm --ignore "0;2" 
 
-    python Generate_RPKM.py --counts /user/home/GSE135114_REH.genelevel.count.csv 
-    --out_prefix /user/home/GSE135114_REH_rpkm --input_sep csv --org="human"
+    python Generate_RPKM.py -C /user/home/GSE135114_REH.genelevel.count.csv 
+    --out_prefix /user/home/GSE135114_REH_rpkm --org="human"
 
 Uses the following python modules: pandas, sys, getopt, argparse, wget, os
 
