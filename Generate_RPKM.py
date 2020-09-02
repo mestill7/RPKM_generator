@@ -18,12 +18,15 @@ import os
 
 parser = argparse.ArgumentParser(description='Transform raw read counts into RPKM.',
     epilog="Report issues or feature requests to Github (https://github.com/mestill7/RPKM_generator)")
-parser.add_argument('--biomart',type=str, help='(Optional) Murine Biomart reference file')
-parser.add_argument('-C',type=str, help='Raw counts file. Tab-delimited (.txt) or comma-seperated (.csv) formats are accepted.')
-parser.add_argument('--out_prefix',type=str, help='(Optional) Prefix for RPKM file name (eg. GSE125197_rpkm. Defaults to \"./RPKM\"')
-parser.add_argument('--ignore',type=str, help='(Optional) Columns to ignore (zero-start), seperated by semicolon (eg. "1;3" will omit the 2nd and 4th column, "0" will omit the first column')
-parser.add_argument('--lengthtype',type=int, help='(Optional) Input options: 1, 2 or 3. \n1=mean of lengths of isoforms, \n2=median of lengths of isoforms.\n3=max of lengths of isoforms.\n Default is 1.')
-parser.add_argument('--org',type=str, help='(Optional) Input options: mouse or human. Default is mouse.')
+optional = parser._action_groups.pop() # Edited this line
+requiredNamed = parser.add_argument_group('Required arguments')
+requiredNamed.add_argument('-C',type=str, help='Raw counts file. Tab-delimited (.txt) or comma-seperated (.csv) formats are accepted.',required=True)
+optional.add_argument('--biomart',type=str, help='(Optional) Murine Biomart reference file')
+optional.add_argument('--out_prefix',type=str, help='(Optional) Prefix for RPKM file name (eg. GSE125197_rpkm. Defaults to \"./RPKM\"')
+optional.add_argument('--ignore',type=str, help='(Optional) Columns to ignore (zero-start), seperated by semicolon (eg. "1;3" will omit the 2nd and 4th column, "0" will omit the first column')
+optional.add_argument('--lengthtype',type=int, help='(Optional) Input options: 1, 2 or 3. \n1=mean of lengths of isoforms, \n2=median of lengths of isoforms.\n3=max of lengths of isoforms.\n Default is 1.')
+optional.add_argument('--org',type=str, help='(Optional) Input options: mouse or human. Default is mouse.')
+parser._action_groups.append(optional) # added this line
 args = parser.parse_args()
 
 ## Helper functions
